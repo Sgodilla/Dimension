@@ -3,7 +3,7 @@
 
 # Sets the minimum version of CMake required to build the native library.
 
-cmake_minimum_required(VERSION 3.10.2)
+cmake_minimum_required(VERSION 3.4.1)
 
 # Declares and names the project.
 
@@ -35,9 +35,10 @@ add_library(lib_FreeType SHARED IMPORTED)
 set_target_properties(lib_FreeType PROPERTIES IMPORTED_LOCATION ${FREETYPE_ROOT}/libs/${ANDROID_ABI}/libfreetype.so)
 list(APPEND aLibDeps lib_FreeType)
 
-# Import the CMakeLists.txt for the glm library
-#add_subdirectory(glm) # if your CMakeLists is at '../cpp'
-#add_subdirectory(src/main/cpp/glm) # if your CMakeLists is at '../app'
+# glm
+include_directories(src/main/cpp/glm)
+add_definitions("-DGLM_FORCE_SIZE_T_LENGTH -DGLM_FORCE_RADIANS -DGLM_FORCE_DEPTH_ZERO_TO_ONE -DGLM_LANG_STL11_FORCED")
+add_subdirectory(src/main/cpp/glm)
 
 # Import the ARCore (Google Play Services for AR) library.
 add_library(arcore SHARED IMPORTED)
@@ -47,19 +48,27 @@ set_target_properties(arcore PROPERTIES IMPORTED_LOCATION
         )
 
 # Import the glm header file from the NDK.
-add_library( glm INTERFACE )
-set_target_properties( glm PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${GLM_INCLUDE})
+#add_library( glm INTERFACE )
+#set_target_properties( glm PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${GLM_INCLUDE})
 
 set(libs_dir ${CMAKE_CURRENT_SOURCE_DIR}/libraries)
 
 # Sources
-file(GLOB native_srcs "src/main/cpp/*.cc" "src/main/cpp/*.cpp")
+file(GLOB native_srcs
+        "src/main/cpp/ARCore/*.cpp"
+        "src/main/cpp/OCCT/*.cpp"
+        "src/main/cpp/Prometheus/*.cpp"
+        )
+
 # Output binary
 add_library(dimension_native SHARED ${native_srcs})
 # Includes
 target_include_directories(dimension_native PRIVATE ${libs_dir})
 target_include_directories(dimension_native PRIVATE
-        src/main/cpp)
+        src/main/cpp/ARCore
+        src/main/cpp/OCCT
+        src/main/cpp/Prometheus
+        )
 # Build
 target_link_libraries(dimension_native
         ${aLibDeps}
