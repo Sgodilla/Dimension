@@ -307,7 +307,7 @@ void pushVertices(TopoDS_Face aFace, Handle(Poly_Triangulation) aTr, Handle(Geom
     uvs.push_back(uvPnt.X());
     uvs.push_back(uvPnt.Y());
 
-    if (aFace.Orientation() == TopAbs _REVERSED)
+    if (aFace.Orientation() == TopAbs_REVERSED)
         aNorm.Reverse();
 
     normals.push_back(aNorm.Y());

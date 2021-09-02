@@ -22,31 +22,30 @@ namespace arcore {
                                           const std::string& png_file_name) {
         compileAndLoadShaderProgram(asset_manager);
         position_attrib_ = glGetAttribLocation(shader_program_, "a_Position");
-        tex_coord_attrib_ = glGetAttribLocation(shader_program_, "a_TexCoord");
         normal_attrib_ = glGetAttribLocation(shader_program_, "a_Normal");
+        //tex_coord_attrib_ = glGetAttribLocation(shader_program_, "a_TexCoord");
 
-        glGenTextures(1, &texture_id_);
-        glBindTexture(GL_TEXTURE_2D, texture_id_);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                        GL_LINEAR_MIPMAP_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        //glGenTextures(1, &texture_id_);
+        //glBindTexture(GL_TEXTURE_2D, texture_id_);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        if (!util::LoadPngFromAssetManager(GL_TEXTURE_2D, png_file_name)) {
+        /*if (!util::LoadPngFromAssetManager(GL_TEXTURE_2D, png_file_name)) {
             LOGE("Could not load png texture for planes.");
-        }
-        glGenerateMipmap(GL_TEXTURE_2D);
+        }*/
+        //glGenerateMipmap(GL_TEXTURE_2D);
 
-        glBindTexture(GL_TEXTURE_2D, 0);
+        //glBindTexture(GL_TEXTURE_2D, 0);
 
-        util::LoadObjFile(obj_file_name, asset_manager, &vertices_, &normals_, &uvs_, &indices_);
+        //util::LoadObjFile(obj_file_name, asset_manager, &vertices_, &normals_, &uvs_, &indices_);
 
         // Make Bottle
         const double aRadius = 0.25;
         const double aHeight = 0.5;
-        //BRepPrimAPI_MakeSphere makeSphere(aRadius);
-        //TopoDS_Shape aShape = makeSphere.Shape();
+        BRepPrimAPI_MakeSphere makeSphere(aRadius);
+        TopoDS_Shape aShape = makeSphere.Shape();
         //TopoDS_Shape aShape = MakeBottle(aRadius, aHeight, aRadius / 2);
 
         // Set Mesh Parameters
@@ -60,7 +59,7 @@ namespace arcore {
         aMeshParams.ControlSurfaceDeflection = true;
 
         //Mesh Box Bottle
-        //Mesh(aShape, aMeshParams, vertices_, normals_, uvs_, indices_);
+        Mesh(aShape, aMeshParams, vertices_, normals_, uvs_, indices_);
 
         util::CheckGlError("obj_renderer::InitializeGlContent()");
     }
@@ -92,7 +91,7 @@ namespace arcore {
         mvp_mat_uniform_ =
                 glGetUniformLocation(shader_program_, "u_ModelViewProjection");
         mv_mat_uniform_ = glGetUniformLocation(shader_program_, "u_ModelView");
-        texture_uniform_ = glGetUniformLocation(shader_program_, "u_Texture");
+        //texture_uniform_ = glGetUniformLocation(shader_program_, "u_Texture");
 
         lighting_param_uniform_ =
                 glGetUniformLocation(shader_program_, "u_LightingParameters");
@@ -127,14 +126,19 @@ namespace arcore {
                            const float* object_color4) const {
         if (!shader_program_) {
             LOGE("shader_program is null.");
+            util::CheckGlError("obj_renderer::Draw(), Load Shader Program");
             return;
         }
 
         glUseProgram(shader_program_);
 
-        glActiveTexture(GL_TEXTURE0);
-        glUniform1i(texture_uniform_, 0);
-        glBindTexture(GL_TEXTURE_2D, texture_id_);
+        util::CheckGlError("obj_renderer::Draw(), Use Shader Program");
+
+        //glActiveTexture(GL_TEXTURE0);
+        //glUniform1i(texture_uniform_, 0);
+        //glBindTexture(GL_TEXTURE_2D, texture_id_);
+
+        util::CheckGlError("obj_renderer::Draw(). Bind Textures");
 
         glm::mat4 mvp_mat = projection_mat * view_mat * model_mat;
         glm::mat4 mv_mat = view_mat * model_mat;
@@ -149,6 +153,8 @@ namespace arcore {
 
         glUniformMatrix4fv(mvp_mat_uniform_, 1, GL_FALSE, glm::value_ptr(mvp_mat));
         glUniformMatrix4fv(mv_mat_uniform_, 1, GL_FALSE, glm::value_ptr(mv_mat));
+
+        util::CheckGlError("obj_renderer::Draw(), Set Uniforms");
 
         // Occlusion parameters.
         if (use_depth_for_occlusion_) {
@@ -169,13 +175,18 @@ namespace arcore {
         glVertexAttribPointer(position_attrib_, 3, GL_FLOAT, GL_FALSE, 0,
                               vertices_.data());
 
+        util::CheckGlError("obj_renderer::Draw(), Enable Vertex Position Array");
+
         glEnableVertexAttribArray(normal_attrib_);
         glVertexAttribPointer(normal_attrib_, 3, GL_FLOAT, GL_FALSE, 0,
                               normals_.data());
 
-        glEnableVertexAttribArray(tex_coord_attrib_);
-        glVertexAttribPointer(tex_coord_attrib_, 2, GL_FLOAT, GL_FALSE, 0,
-                              uvs_.data());
+        util::CheckGlError("obj_renderer::Draw(), Enable Vertex Normal Array");
+
+        //glEnableVertexAttribArray(tex_coord_attrib_);
+        //glVertexAttribPointer(tex_coord_attrib_, 2, GL_FLOAT, GL_FALSE, 0, uvs_.data());
+
+        util::CheckGlError("obj_renderer::Draw(), Enable Vertex Texture Array");
 
         glDepthMask(GL_TRUE);
         glEnable(GL_BLEND);
@@ -187,14 +198,15 @@ namespace arcore {
 
         glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_SHORT,
                        indices_.data());
+        util::CheckGlError("obj_renderer::Draw(), Draw Function");
 
         glDisable(GL_BLEND);
         glDisableVertexAttribArray(position_attrib_);
-        glDisableVertexAttribArray(tex_coord_attrib_);
         glDisableVertexAttribArray(normal_attrib_);
+        //glDisableVertexAttribArray(tex_coord_attrib_);
 
         glUseProgram(0);
-        util::CheckGlError("obj_renderer::Draw()");
+        util::CheckGlError("obj_renderer::Draw(), End Program");
     }
 
 }  // namespace arcore

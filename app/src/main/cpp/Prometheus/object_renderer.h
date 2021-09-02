@@ -77,8 +77,8 @@ namespace arcore {
 
         // Model attribute arrays
         std::vector<GLfloat> vertices_;
-        std::vector<GLfloat> uvs_;
         std::vector<GLfloat> normals_;
+        std::vector<GLfloat> uvs_;
 
         // Model triangle indices
         std::vector<GLushort> indices_;

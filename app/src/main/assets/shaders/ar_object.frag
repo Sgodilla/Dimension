@@ -16,7 +16,7 @@
 
 precision mediump float;
 
-uniform sampler2D u_Texture;
+//uniform sampler2D u_Texture;
 
 uniform vec4 u_LightingParameters;
 uniform vec4 u_MaterialParameters;
@@ -30,7 +30,7 @@ uniform float u_DepthAspectRatio;
 
 varying vec3 v_ViewPosition;
 varying vec3 v_ViewNormal;
-varying vec2 v_TexCoord;
+//varying vec2 v_TexCoord;
 varying vec3 v_ScreenSpacePosition;
 uniform vec4 u_ObjColor;
 
