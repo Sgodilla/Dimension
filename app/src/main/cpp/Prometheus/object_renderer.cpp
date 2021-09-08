@@ -2,12 +2,16 @@
 // Created by sgodi on 8/31/2021.
 //
 
+#define _USE_MATH_DEFINES
+
 #include "object_renderer.h"
 #include "util.h"
 #include <BRepPrimAPI_MakeCylinder.hxx>
 #include <BRepTools.hxx>
 #include <BRepMesh_IncrementalMesh.hxx>
 #include <BRepPrimAPI_MakeSphere.hxx>
+
+#define M_PI           3.14159265358979323846 /* pi */
 
 namespace arcore {
     namespace {
@@ -45,17 +49,17 @@ namespace arcore {
         const double aRadius = 0.25;
         const double aHeight = 0.5;
         BRepPrimAPI_MakeSphere makeSphere(aRadius);
-        TopoDS_Shape aShape = makeSphere.Shape();
-        //TopoDS_Shape aShape = MakeBottle(aRadius, aHeight, aRadius / 2);
+        //TopoDS_Shape aShape = makeSphere.Shape();
+        TopoDS_Shape aShape = MakeBottle(aRadius, aHeight, aRadius / 2);
 
         // Set Mesh Parameters
         IMeshTools_Parameters aMeshParams;
         aMeshParams.Deflection = 0.01;
-        aMeshParams.Angle = 0.1;
+        aMeshParams.Angle = 0.05;
         aMeshParams.Relative = false;
         aMeshParams.InParallel = true;
         aMeshParams.MinSize = Precision::Confusion();
-        aMeshParams.InternalVerticesMode = false;
+        aMeshParams.InternalVerticesMode = true;
         aMeshParams.ControlSurfaceDeflection = true;
 
         //Mesh Box Bottle
@@ -190,6 +194,8 @@ namespace arcore {
 
         glDepthMask(GL_TRUE);
         glEnable(GL_BLEND);
+        glEnable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
 
         // Textures are loaded with premultiplied alpha
         // (https://developer.android.com/reference/android/graphics/BitmapFactory.Options#inPremultiplied),
@@ -201,6 +207,7 @@ namespace arcore {
         util::CheckGlError("obj_renderer::Draw(), Draw Function");
 
         glDisable(GL_BLEND);
+        glDisable(GL_DEPTH_TEST);
         glDisableVertexAttribArray(position_attrib_);
         glDisableVertexAttribArray(normal_attrib_);
         //glDisableVertexAttribArray(tex_coord_attrib_);

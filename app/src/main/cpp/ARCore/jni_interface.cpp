@@ -90,6 +90,21 @@ JNI_METHOD(void, onTouched)
 native(native_application)->OnTouched(x, y);
 }
 
+JNI_METHOD(void, onDrag)
+(JNIEnv *, jclass, jlong native_application, jfloat x, jfloat y) {
+    native(native_application)->MoveObject(x, y);
+}
+
+JNI_METHOD(void, onRotate)
+(JNIEnv *, jclass, jlong native_application, jfloat x, jfloat y) {
+    native(native_application)->RotateObject(x, y);
+}
+
+JNI_METHOD(void, onScale)
+(JNIEnv *, jclass, jlong native_application, jfloat scale) {
+    native(native_application)->ScaleObject(scale);
+}
+
 JNI_METHOD(jboolean, hasDetectedPlanes)
 (JNIEnv *, jclass, jlong native_application) {
 return static_cast<jboolean>(

@@ -5,9 +5,14 @@
 #ifndef DIMENSION_MAIN_APPLICATION_H
 #define DIMENSION_MAIN_APPLICATION_H
 
+#define  LOG_TAG    "dimension-debugger"
+
+#define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 #include <android/asset_manager.h>
+#include <android/log.h>
 #include <jni.h>
 
 #include <memory>
@@ -70,6 +75,12 @@ public:
 
     void OnSettingsChange(bool is_instant_placement_enabled);
 
+    void MoveObject(float x, float y);
+
+    void RotateObject(float x, float y);
+
+    void ScaleObject(float scale);
+
 private:
     glm::mat3 GetTextureTransformMatrix(const ArSession* session,
                                         const ArFrame* frame);
@@ -99,6 +110,13 @@ private:
     PlaneRenderer plane_renderer_;
     ObjRenderer andy_renderer_;
     Texture depth_texture_;
+
+    float scaleFactor_ = 1.0f;
+    float verticalRotation_ = 0.0f;
+    float horizontalRotation_ = 0.0f;
+    glm::vec3 verticalTranslate_ = glm::vec3(0);
+    glm::vec3 horizontalTranslate_ = glm::vec3(0);
+    glm::mat4 view_matrix_ = glm::mat4(1);
 
     int32_t plane_count_ = 0;
 

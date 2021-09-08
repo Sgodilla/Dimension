@@ -43,6 +43,12 @@ public class JniInterface {
     /** OnTouch event, called on the OpenGL thread. */
     public static native void onTouched(long nativeApplication, float x, float y);
 
+    public static native void onDrag(long nativeApplication, float x, float y);
+
+    public static native void onRotate(long nativeApplication, float x, float y);
+
+    public static native void onScale(long nativeApplication, float scale);
+
     /** Get plane count in current session. Used to disable the "searching for surfaces" snackbar. */
     public static native boolean hasDetectedPlanes(long nativeApplication);
 
@@ -64,5 +70,6 @@ public class JniInterface {
     public static void loadTexture(int target, Bitmap bitmap) {
         GLUtils.texImage2D(target, 0, bitmap, 0);
     }
+
 }
 

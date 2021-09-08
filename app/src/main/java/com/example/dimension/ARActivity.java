@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
@@ -20,6 +21,8 @@ import android.widget.PopupMenu;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.MotionEventCompat;
+
 import com.google.android.material.snackbar.Snackbar;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -30,6 +33,7 @@ public class ARActivity extends AppCompatActivity
     private static final int SNACKBAR_UPDATE_INTERVAL_MILLIS = 1000; // In milliseconds.
     private static final int NUM_DEPTH_SETTINGS_CHECKBOXES = 2;
     private static final int NUM_INSTANT_PLACEMENT_SETTINGS_CHECKBOXES = 1;
+    private static final String TAG = "dimension-debugger";
 
     private GLSurfaceView surfaceView;
 
@@ -46,7 +50,13 @@ public class ARActivity extends AppCompatActivity
 
     // Opaque native pointer to the native application instance.
     private long nativeApplication;
+
+    enum transformModes {move, rotate, scale};
+    transformModes transformode = transformModes.move;
+
     private GestureDetector gestureDetector;
+    private ScaleGestureDetector scaleGestureDetector;
+    private float scaleFactor = 1.0f;
 
     private Snackbar snackbar;
     private Handler planeStatusCheckingHandler;
@@ -78,30 +88,70 @@ public class ARActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         surfaceView = (GLSurfaceView) findViewById(R.id.surfaceview);
 
-        // Set up touch listener.
+
+        // Setup Touch Listner
         gestureDetector =
                 new GestureDetector(
                         this,
                         new GestureDetector.SimpleOnGestureListener() {
                             @Override
-                            public boolean onSingleTapUp(final MotionEvent e) {
-                                // For devices that support the Depth API, shows a dialog to suggest enabling
-                                // depth-based occlusion. This dialog needs to be spawned on the UI thread.
+                            public boolean onDown(MotionEvent motionEvent) {
+                                return false;
+                            }
+
+                            @Override
+                            public void onShowPress(MotionEvent motionEvent) {
+
+                            }
+
+                            @Override
+                            public boolean onSingleTapUp(MotionEvent motionEvent) {
+
                                 ARActivity.this.runOnUiThread(() -> showOcclusionDialogIfNeeded());
 
-                                surfaceView.queueEvent(
-                                        () -> JniInterface.onTouched(nativeApplication, e.getX(), e.getY()));
+                                if (transformode == transformModes.move)
+                                    surfaceView.queueEvent(
+                                            () -> JniInterface.onTouched(nativeApplication, motionEvent.getX(), motionEvent.getY()));
                                 return true;
                             }
 
                             @Override
-                            public boolean onDown(MotionEvent e) {
+                            public boolean onScroll(MotionEvent motionEvent, MotionEvent motionEvent1, float v, float v1) {
+                                //float xDistance = motionEvent.getX() - motionEvent1.getX();
+                                //float yDistance = motionEvent.getY() - motionEvent1.getY();
+                                if (transformode == transformModes.move)
+                                    surfaceView.queueEvent(
+                                            () -> JniInterface.onDrag(nativeApplication, v, v1));
+                                else if (transformode == transformModes.rotate)
+                                    surfaceView.queueEvent(
+                                            () -> JniInterface.onRotate(nativeApplication, v, v1));
                                 return true;
                             }
-                        });
 
-        surfaceView.setOnTouchListener(
-                (View v, MotionEvent event) -> gestureDetector.onTouchEvent(event));
+                            @Override
+                            public void onLongPress(MotionEvent motionEvent) {
+
+                            }
+
+                            @Override
+                            public boolean onFling(MotionEvent motionEvent, MotionEvent motionEvent1, float v, float v1) {
+                                return false;
+                            }
+                        }
+                );
+
+        scaleGestureDetector = new ScaleGestureDetector(this, new ScaleListner());
+
+        surfaceView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                gestureDetector.onTouchEvent(motionEvent);
+                scaleGestureDetector.onTouchEvent(motionEvent);
+                return true;
+            }
+        });
+
+        //surfaceView.setOnTouchListener((View v, MotionEvent event) -> scaleGestureDetector.onTouchEvent(event));
 
         // Set up renderer.
         surfaceView.setPreserveEGLContextOnPause(true);
@@ -129,6 +179,37 @@ public class ARActivity extends AppCompatActivity
                         popup.show();
                     }
                 });
+
+        ImageButton moveButton = findViewById(R.id.move_button);
+        moveButton.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        transformode = transformModes.move;
+                    }
+                }
+        );
+
+        ImageButton rotateButton = findViewById(R.id.rotate_button);
+        rotateButton.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        transformode = transformModes.rotate;
+                    }
+                }
+        );
+
+        ImageButton scaleButton = findViewById(R.id.scale_button);
+        scaleButton.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        transformode = transformModes.scale;
+                    }
+                }
+        );
+
     }
 
     /** Menu button to launch feature specific settings. */
@@ -382,5 +463,25 @@ public class ARActivity extends AppCompatActivity
     @Override
     public void onDisplayChanged(int displayId) {
         viewportChanged = true;
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent me) {
+        gestureDetector.onTouchEvent(me);
+        scaleGestureDetector.onTouchEvent(me);
+        return true;
+    }
+
+    private class ScaleListner
+            extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            if (transformode == transformModes.scale) {
+                scaleFactor *= detector.getScaleFactor();
+                scaleFactor = Math.max(0.1f, Math.min(scaleFactor, 5.0f));
+                JniInterface.onScale(nativeApplication, scaleFactor);
+            }
+            return true;
+        }
     }
 }

@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <string>
 #include <vector>
+#include <math.h>
 
 #include "arcore_c_api.h"
 #include "glm.h"

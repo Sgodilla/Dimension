@@ -170,6 +170,10 @@ namespace arcore {
                 /*near=*/0.1f, /*far=*/100.f,
                                      glm::value_ptr(projection_mat));
 
+        view_matrix_ = view_mat;
+        std::basic_string<char, std::char_traits<char>, std::allocator<char>> matData = glm::to_string(view_mat);
+        //LOGD("%s", matData.data());
+
         background_renderer_.Draw(ar_session_, ar_frame_,
                                   depthColorVisualizationEnabled);
 
@@ -264,6 +268,13 @@ namespace arcore {
                 // Render object only if the tracking state is AR_TRACKING_STATE_TRACKING.
                 util::GetTransformMatrixFromAnchor(*colored_anchor.anchor, ar_session_,
                                                    &model_mat);
+                //model_mat = glm::translate(model_mat, glm::vec3(0, 0.75, 0));
+                //model_mat = glm::rotate(model_mat, glm::radians(-90.0f), glm::vec3(1, 0, 0));
+                model_mat = glm::translate(model_mat, verticalTranslate_ + horizontalTranslate_);
+                model_mat = glm::rotate(model_mat, verticalRotation_, glm::vec3(1.0, 0.0, 0.0));
+                model_mat = glm::rotate(model_mat, horizontalRotation_, glm::vec3(0.0, 1.0, 0.0));
+                model_mat = glm::scale(model_mat, glm::vec3(scaleFactor_));
+                //model_mat = translate_mat * rotate_mat1 * rotate_mat2 * scale_mat;
                 andy_renderer_.Draw(projection_mat, view_mat, model_mat, color_correction,
                                     colored_anchor.color);
             }
@@ -319,6 +330,7 @@ namespace arcore {
     }
 
     void MainApplication::OnTouched(float x, float y) {
+        //LOGD("X: %f, Y: %f", x, y);
         if (ar_frame_ != nullptr && ar_session_ != nullptr) {
             ArHitResultList* hit_result_list = nullptr;
             ArHitResultList_create(ar_session_, &hit_result_list);
@@ -517,5 +529,26 @@ namespace arcore {
         uvTransform[8] = 1;
 
         return glm::make_mat3(uvTransform);
+    }
+
+    void MainApplication::MoveObject(float x, float y) {
+        //LOGD("X: %f, Y: %f", x, y);
+        //LOGD("Width: %d, Height: %d", width_, height_);
+        glm::mat4 view_mat = glm::mat4(1);
+
+        verticalTranslate_ = verticalTranslate_ + ((y / static_cast<float>(width_)) * glm::vec3(view_matrix_[0][1], view_matrix_[1][1], view_matrix_[2][1]));
+        horizontalTranslate_ = horizontalTranslate_ + ((x / static_cast<float>(width_)) * -glm::vec3(view_matrix_[0][0], view_matrix_[1][0], view_matrix_[2][0]));
+        //verticalTranslate_ = ((y / static_cast<float>(height_)) * glm::vec3(view_matrix_[0][1], view_matrix_[1][1], view_matrix_[2][1]));
+        //horizontalTranslate_ = ((x / static_cast<float>(width_)) * -glm::vec3(view_matrix_[0][0], view_matrix_[1][0], view_matrix_[2][0]));
+    }
+
+    void MainApplication::RotateObject(float x, float y) {
+        verticalRotation_ = verticalRotation_ + (y / static_cast<float>(width_)) * 2 * M_PI;
+        horizontalRotation_ = horizontalRotation_ + (x / static_cast<float>(width_)) * 2 * M_PI;
+    }
+
+    void MainApplication::ScaleObject(float scale) {
+        LOGD("Scale Factor: %f", scaleFactor_);
+        scaleFactor_ = scale;
     }
 }  // namespace arcore
