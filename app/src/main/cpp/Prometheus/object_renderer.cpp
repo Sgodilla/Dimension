@@ -54,11 +54,11 @@ namespace arcore {
 
         // Set Mesh Parameters
         IMeshTools_Parameters aMeshParams;
-        aMeshParams.Deflection = 0.01;
+        aMeshParams.Deflection = 0.001;
         aMeshParams.Angle = 0.05;
         aMeshParams.Relative = false;
         aMeshParams.InParallel = true;
-        aMeshParams.MinSize = Precision::Confusion();
+        //aMeshParams.MinSize = Precision::Confusion();
         aMeshParams.InternalVerticesMode = true;
         aMeshParams.ControlSurfaceDeflection = true;
 
