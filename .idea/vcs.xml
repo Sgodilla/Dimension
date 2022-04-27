@@ -2,7 +2,8 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/app/libs/OpenCascadeTechnologies/AnalysisSitus" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/app/libs/OpenCascadeTechnologies/android-cmake" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/app/libs/OpenCascadeTechnologies/AnalysisSitus" vcs="" />
+    <mapping directory="$PROJECT_DIR$/app/libs/OpenCascadeTechnologies/android-cmake" vcs="" />
+    <mapping directory="$PROJECT_DIR$/../arcore-android-sdk" vcs="" />
   </component>
 </project>
