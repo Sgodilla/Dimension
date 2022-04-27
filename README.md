@@ -12,4 +12,4 @@ Modern CAD packages like Autodesk, Solidworks, and FreeCAD have revolutionized t
 The inspiration for Dimension came from the holograms in Iron Man where Tony Stark uses them to design his suits. Of course, generating holograms is infeasable with current technology, but augmented reality technology is incredibly mature and can be easily deployed on modern phones. Thus, the first prototype of Dimension utilizes Google's open source ARCore library. 
 
 ## Installation
-To install Dimension on your Android device, simply download the apk from releases onto your device and then install the apk.
+To install Dimension on your Android device, simply download the apk from [releases](https://github.com/Sgodilla/Dimension/releases/tag/v1.0.0) onto your device and then install the apk.
